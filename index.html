@@ -2,171 +2,369 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="theme-color" content="#1c1c1e" />
 <title>Card Claim System</title>
 <style>
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+
   body {
-    font-family: Arial, sans-serif;
-    margin: 0; padding: 0;
-    box-sizing: border-box;
-    background: #f9f9f9;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+    background: #f0f2f5;
+    color: #1a1a1a;
   }
+
   header {
-    background: #222;
+    background: #1c1c1e;
     color: white;
-    padding: 10px 20px;
+    padding: calc(12px + env(safe-area-inset-top, 0px)) calc(20px + env(safe-area-inset-right, 0px)) 12px calc(20px + env(safe-area-inset-left, 0px));
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
   }
-  .cart-icon {
-    position: relative;
+  header h1 {
+    margin: 0;
+    font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  /* Cart button: 48px+ touch target for iPad */
+  .cart-icon-btn {
+    -webkit-appearance: none;
+    appearance: none;
+    border: none;
+    background: rgba(255,255,255,0.12);
+    color: white;
+    padding: 0;
+    margin: 0;
+    border-radius: 14px;
+    min-width: 48px;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    font-size: 28px;
+    font-size: 26px;
+    line-height: 1;
+    position: relative;
+    transition: background 0.2s ease;
   }
-  .cart-icon::after {
+  .cart-icon-btn:active {
+    background: rgba(255,255,255,0.22);
+  }
+  .cart-icon-btn::after {
     content: attr(data-count);
     position: absolute;
-    top: -8px;
-    right: -12px;
-    background: red;
+    top: 4px;
+    right: 4px;
+    background: #ff3b30;
     color: white;
-    font-size: 14px;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
+    font-size: 11px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    border-radius: 10px;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-weight: bold;
+    font-weight: 700;
+    line-height: 1;
   }
+  .cart-icon-btn[data-count="0"]::after {
+    display: none;
+  }
+
   #footerBar {
     position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #333;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    right: calc(16px + env(safe-area-inset-right, 0px));
+    left: auto;
+    max-width: calc(100vw - 32px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
+    background: #2c2c2e;
     color: white;
-    padding: 10px 20px;
-    border-radius: 50px;
-    font-size: 16px;
-    font-weight: bold;
-    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    padding: 14px 22px;
+    border-radius: 999px;
+    font-size: clamp(15px, 2vw, 17px);
+    font-weight: 600;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.25);
     cursor: pointer;
     z-index: 999;
-  }
-  .card-section {
-    padding: 20px;
-  }
-  .section-title {
-    font-size: 24px;
-    margin-bottom: 10px;
-    font-weight: bold;
-  }
-  .cards-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-  .card {
-    width: 140px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    padding: 10px;
     text-align: center;
   }
+
+  .card-section {
+    padding: 20px 16px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  @media (min-width: 768px) {
+    .card-section {
+      padding: 28px 32px;
+    }
+  }
+
+  .section-title {
+    font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+    margin-bottom: 16px;
+    font-weight: 700;
+    color: #111;
+  }
+
+  /* Responsive grid: larger cells on iPad */
+  .cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 14px;
+  }
+  @media (min-width: 768px) {
+    .cards-container {
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+    }
+  }
+  @media (min-width: 1024px) {
+    .cards-container {
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 24px;
+    }
+  }
+
+  .card {
+    width: 100%;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    padding: 14px 12px 16px;
+    text-align: center;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  @media (min-width: 768px) {
+    .card {
+      padding: 18px 16px 20px;
+      border-radius: 20px;
+    }
+    .card:active {
+      transform: scale(0.98);
+    }
+  }
+
   .card img {
     width: 100%;
-    height: 170px;
+    height: 160px;
     object-fit: contain;
-    border-radius: 4px;
+    border-radius: 10px;
+    background: #fafafa;
   }
+  @media (min-width: 768px) {
+    .card img { height: 200px; }
+  }
+  @media (min-width: 1024px) {
+    .card img { height: 220px; }
+  }
+
+  .card .card-name {
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 10px;
+    line-height: 1.35;
+    color: #333;
+  }
+  @media (min-width: 768px) {
+    .card .card-name { font-size: 16px; }
+  }
+
+  .card .card-qty {
+    font-size: 13px;
+    color: #666;
+    margin-top: 6px;
+  }
+  @media (min-width: 768px) {
+    .card .card-qty { font-size: 15px; }
+  }
+
   .card button {
-    margin-top: 8px;
-    padding: 6px 12px;
+    margin-top: 12px;
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 16px;
     border: none;
-    background: #007bff;
+    background: #007aff;
     color: white;
-    border-radius: 4px;
+    border-radius: 12px;
     cursor: pointer;
-    font-weight: bold;
-    transition: background 0.3s ease;
+    font-weight: 600;
+    font-size: 16px;
+    transition: background 0.2s ease, transform 0.1s ease;
+  }
+  .card button:active:not(:disabled) {
+    transform: scale(0.98);
   }
   .card button:disabled {
-    background: #aaa;
+    background: #c7c7cc;
+    color: #8e8e93;
     cursor: not-allowed;
   }
-  /* Cart panel */
+
+  /* Cart panel — wider on tablet */
   #cartPanel {
     position: fixed;
-    top: 0; right: 0;
-    width: 320px;
+    top: 0;
+    right: 0;
+    width: min(420px, 92vw);
     height: 100vh;
-    background: white;
-    box-shadow: -3px 0 8px rgba(0,0,0,0.15);
-    padding: 20px;
+    height: 100dvh;
+    background: #fff;
+    box-shadow: -4px 0 24px rgba(0,0,0,0.12);
+    padding: calc(20px + env(safe-area-inset-top, 0px)) calc(20px + env(safe-area-inset-right, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) 20px;
     display: none;
     flex-direction: column;
     z-index: 1000;
   }
+  @media (min-width: 1024px) {
+    #cartPanel {
+      width: min(480px, 45vw);
+    }
+  }
+
   #cartPanel h2 {
     margin-top: 0;
+    padding-right: 52px;
+    font-size: clamp(1.35rem, 2.5vw, 1.6rem);
   }
+
   #closeCart {
     position: absolute;
-    top: 15px;
-    right: 15px;
-    font-size: 26px;
+    top: calc(10px + env(safe-area-inset-top, 0px));
+    right: calc(10px + env(safe-area-inset-right, 0px));
+    font-size: 24px;
+    line-height: 1;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
     user-select: none;
+    border-radius: 12px;
+    background: #f2f2f7;
+    color: #333;
   }
+  #closeCart:active {
+    background: #e5e5ea;
+  }
+
   #cartItems {
     flex-grow: 1;
     overflow-y: auto;
     margin-top: 10px;
+    -webkit-overflow-scrolling: touch;
   }
+
   .cart-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
     border-bottom: 1px solid #eee;
-    padding-bottom: 10px;
+    padding-bottom: 16px;
+  }
+  .cart-item-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    width: 100%;
   }
   .cart-item img {
-    width: 120px;
-    height: 120px;
+    width: 100px;
+    height: 100px;
+    flex-shrink: 0;
     object-fit: cover;
-    border-radius: 4px;
-    cursor: pointer;
+    border-radius: 12px;
+    background: #f5f5f5;
   }
-  .cart-item span {
+  @media (min-width: 768px) {
+    .cart-item img {
+      width: 120px;
+      height: 120px;
+    }
+  }
+
+  .cart-item-body {
     flex: 1;
-    margin-left: 12px;
-    font-weight: bold;
+    min-width: 0;
   }
-  .remove-btn {
-    background: transparent;
-    border: none;
-    font-size: 22px;
-    color: red;
+  .cart-item-name {
+    display: block;
+    font-weight: 600;
+    font-size: 15px;
+    line-height: 1.35;
+    margin-bottom: 10px;
+    color: #1a1a1a;
+  }
+  @media (min-width: 768px) {
+    .cart-item-name { font-size: 17px; }
+  }
+
+  .cart-item-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .btn-cart-return,
+  .btn-cart-finalize {
+    flex: 1;
+    min-width: 120px;
+    min-height: 44px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
     cursor: pointer;
-    padding: 0 6px;
-    user-select: none;
+    border: none;
+    -webkit-appearance: none;
+    appearance: none;
   }
+  .btn-cart-return {
+    background: #f2f2f7;
+    color: #333;
+  }
+  .btn-cart-return:active {
+    background: #e5e5ea;
+  }
+  .btn-cart-finalize {
+    background: #34c759;
+    color: white;
+  }
+  .btn-cart-finalize:active {
+    filter: brightness(0.95);
+  }
+
   #cartTotal {
-    font-weight: bold;
+    font-weight: 700;
     margin-top: 15px;
-    font-size: 18px;
+    font-size: clamp(17px, 2.2vw, 20px);
     border-top: 1px solid #ccc;
-    padding-top: 12px;
+    padding-top: 14px;
   }
   #acknowledgments {
-    margin-top: 25px;
+    margin-top: 22px;
     font-size: 14px;
     color: #555;
+    line-height: 1.45;
   }
   #acknowledgments h4 {
-    margin-bottom: 6px;
+    margin-bottom: 8px;
+    font-size: 15px;
   }
+
   .sold-history {
     margin-top: 10px;
     font-size: 13px;
@@ -174,13 +372,41 @@
     font-style: italic;
   }
 
+  .page-footer-actions {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 16px 16px calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+  @media (min-width: 768px) {
+    .page-footer-actions {
+      padding: 24px 32px calc(32px + env(safe-area-inset-bottom, 0px));
+    }
+  }
+  .btn-export {
+    width: 100%;
+    max-width: 420px;
+    min-height: 50px;
+    padding: 14px 24px;
+    font-size: 17px;
+    font-weight: 600;
+    border: none;
+    border-radius: 14px;
+    background: #1c1c1e;
+    color: white;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .btn-export:active {
+    opacity: 0.9;
+  }
 </style>
 </head>
 <body>
 
 <header>
   <h1>Card Picker</h1>
-  <div id="cartIcon" class="cart-icon" data-count="0">🛒</div>
+  <button type="button" id="cartIcon" class="cart-icon-btn" data-count="0" aria-label="Open shopping cart">🛒</button>
 </header>
 
 <div id="cardSectionsContainer"></div>
@@ -203,7 +429,9 @@
 
 <div id="footerBar">Total: $0 | 0 cards</div>
 
-<button onclick="exportSoldHistoryToCSV()">Export Sales</button>
+<div class="page-footer-actions">
+  <button type="button" class="btn-export" onclick="exportSoldHistoryToCSV()">Export Sales</button>
+</div>
 
 
 <script>
@@ -247,19 +475,18 @@
         { name: 'Birthday Option 19', image: 'https://m.media-amazon.com/images/I/5145rNUyerL._AC_.jpg', remaining: 1 }, /* 19 */
         { name: 'Birthday Option 20', image: 'https://m.media-amazon.com/images/I/61SyqxjSgDL._AC_SX679_.jpg', remaining: 8 }, /* 20 */
         { name: 'Birthday Option 21', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/images/stencil/1280x1280/products/12372/36203/CD20134__30374.1712417747.jpg?c=1', remaining: 2 }, /* 21 */
-        
       ]
-    },
+    }, 
     {
       label: 'Christmas',
       cards: [
-        { name: 'Birthday Option 1', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/images/stencil/640w/products/12254/25600/cd80277__73531.1665065850.jpg?c=1', remaining: 4 },
-        { name: 'Birthday Option 2', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/images/stencil/640w/products/12264/25620/cd80289__07189.1665065869.jpg?c=1', remaining: 2 },
-        { name: 'Birthday Option 3', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/images/stencil/640w/products/1020/2143/cd80099-flamingo-wearing-santa-hat-and-sunglasses-on-beach-funny-warm-weather-christmas-card__12071.1656192211.jpg?c=1', remaining: 3 },
-        { name: 'Birthday Option 4', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/images/stencil/640w/products/1030/2163/cd8379-dogs-in-truck-christmas-card__30737.1656192225.jpg?c=1', remaining: 2 },
-        { name: 'Birthday Option 5', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/images/stencil/640w/products/1025/2153/cd80104-dog-with-reindeer-antlers-on-butt-funny-christmas-card__14171.1656192218.jpg?c=1', remaining: 3 },
-        { name: 'Birthday Option 6', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/images/stencil/640w/products/1029/2161/cd8377-dog-tongue-stuck-on-pole-christmas-card__87495.1656192223.jpg?c=1', remaining: 4 },
-        { name: 'Birthday Option 7', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/images/stencil/640w/products/12252/25596/cd80275__43456.1665065847.jpg?c=1', remaining: 1 },
+        { name: 'Christmas Option 1', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/images/stencil/640w/products/12254/25600/cd80277__73531.1665065850.jpg?c=1', remaining: 4 },
+        { name: 'Christmas Option 2', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/images/stencil/640w/products/12264/25620/cd80289__07189.1665065869.jpg?c=1', remaining: 2 },
+        { name: 'Christmas Option 3', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/images/stencil/640w/products/1020/2143/cd80099-flamingo-wearing-santa-hat-and-sunglasses-on-beach-funny-warm-weather-christmas-card__12071.1656192211.jpg?c=1', remaining: 3 },
+        { name: 'Christmas Option 4', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/images/stencil/640w/products/1030/2163/cd8379-dogs-in-truck-christmas-card__30737.1656192225.jpg?c=1', remaining: 2 },
+        { name: 'Christmas Option 5', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/images/stencil/640w/products/1025/2153/cd80104-dog-with-reindeer-antlers-on-butt-funny-christmas-card__14171.1656192218.jpg?c=1', remaining: 3 },
+        { name: 'Christmas Option 6', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/images/stencil/640w/products/1029/2161/cd8377-dog-tongue-stuck-on-pole-christmas-card__87495.1656192223.jpg?c=1', remaining: 4 },
+        { name: 'Christmas Option 7', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/images/stencil/640w/products/12252/25596/cd80275__43456.1665065847.jpg?c=1', remaining: 1 }
       ]
     },
     {
@@ -310,6 +537,10 @@
       cardsContainer.className = 'cards-container';
 
       section.cards.forEach((card, cardIndex) => {
+        if (!card || typeof card.name !== 'string' || typeof card.image !== 'string' || typeof card.remaining !== 'number') {
+          return;
+        }
+
         const cardKey = `${section.label}-${cardIndex}`;
         remaining[cardKey] = card.remaining;
 
@@ -318,9 +549,9 @@
 
         cardDiv.innerHTML = `
           <img src="${card.image}" alt="${card.name}" />
-          <div>${card.name}</div>
-          <div>Remaining: <span id="qty-${cardKey}">${remaining[cardKey]}</span></div>
-          <button id="btn-${cardKey}">Claim</button>
+          <div class="card-name">${card.name}</div>
+          <div class="card-qty">Remaining: <span id="qty-${cardKey}">${remaining[cardKey]}</span></div>
+          <button type="button" id="btn-${cardKey}">Claim</button>
           <div class="sold-history" id="history-${cardKey}" style="display:none;"></div>
         `;
 
@@ -412,38 +643,54 @@
       const div = document.createElement('div');
       div.className = 'cart-item';
 
+      const top = document.createElement('div');
+      top.className = 'cart-item-top';
+
       const img = document.createElement('img');
       img.src = item.image;
       img.alt = item.cardName;
 
-      // Double-click image removes permanently
-      img.ondblclick = () => {
+      const body = document.createElement('div');
+      body.className = 'cart-item-body';
+
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'cart-item-name';
+      nameSpan.textContent = item.cardName;
+
+      const actions = document.createElement('div');
+      actions.className = 'cart-item-actions';
+
+      const returnBtn = document.createElement('button');
+      returnBtn.type = 'button';
+      returnBtn.className = 'btn-cart-return';
+      returnBtn.textContent = 'Return';
+      returnBtn.title = 'Put this card back in stock';
+      returnBtn.onclick = () => removeFromCart(index, false);
+
+      const finalizeBtn = document.createElement('button');
+      finalizeBtn.type = 'button';
+      finalizeBtn.className = 'btn-cart-finalize';
+      finalizeBtn.textContent = 'Finalize sale';
+      finalizeBtn.title = 'Remove from cart without restoring stock';
+      finalizeBtn.onclick = () => {
+        if (!confirm('Finalize this sale? The card will leave the cart and will NOT go back into stock.')) return;
         const realIndex = cart.findIndex(c => c === item);
-        if (realIndex !== -1) {
-          // Reveal or refresh history
-          const historyDiv = document.getElementById(`history-${item.key}`);
-          if (historyDiv && soldHistory[item.key]) {
-            historyDiv.style.display = 'block';
-            historyDiv.textContent = `Sold: ${soldHistory[item.key].sold}`;
-          }
-          removeFromCart(realIndex, true);
+        if (realIndex === -1) return;
+        const historyDiv = document.getElementById(`history-${item.key}`);
+        if (historyDiv && soldHistory[item.key]) {
+          historyDiv.style.display = 'block';
+          historyDiv.textContent = `Sold: ${soldHistory[item.key].sold}`;
         }
+        removeFromCart(realIndex, true);
       };
 
-
-
-      const span = document.createElement('span');
-      span.textContent = item.cardName;
-
-      const removeBtn = document.createElement('button');
-      removeBtn.className = 'remove-btn';
-      removeBtn.textContent = '❌';
-      removeBtn.title = "Remove and restore stock";
-      removeBtn.onclick = () => removeFromCart(index, false);
-
-      div.appendChild(img);
-      div.appendChild(span);
-      div.appendChild(removeBtn);
+      actions.appendChild(returnBtn);
+      actions.appendChild(finalizeBtn);
+      body.appendChild(nameSpan);
+      body.appendChild(actions);
+      top.appendChild(img);
+      top.appendChild(body);
+      div.appendChild(top);
 
       cartItemsDiv.appendChild(div);
     });
