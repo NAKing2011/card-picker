@@ -11,9 +11,28 @@
 <body>
 
 <header>
-  <h1>Card Picker</h1>
+  <h1>Foster-Powered Postcards</h1>
+  <p>Sent with a purr and a wag from the <strong>heart of the Midwest Animal Rescue & Services..</strong></p>
   <button type="button" id="cartIcon" class="cart-icon-btn" data-count="0" aria-label="Open shopping cart">🛒</button>
 </header>
+
+<section class="search-wrap" aria-label="Search cards">
+  <div class="search-row">
+    <input
+      type="search"
+      id="cardSearchInput"
+      class="search-input"
+      placeholder="Search cards (example: cat, birthday, christmas)"
+      autocomplete="off"
+      spellcheck="false"
+      aria-label="Search cards by keyword"
+    />
+    <button type="button" id="clearSearchBtn" class="search-clear-btn" aria-label="Clear search">Clear</button>
+  </div>
+  <p id="searchStatus" class="search-status" aria-live="polite"></p>
+</section>
+
+<section id="categoryChips" class="category-chips-wrap" aria-label="Filter by category"></section>
 
 <div id="cardSectionsContainer"></div>
 
