@@ -4,7 +4,7 @@
 
 // Object to track remaining count by key (section-label + card index)
 const remaining = {};
-// The cart array with objects: { cardName, key, image }
+// Cart: { cardName, key (inventory id), image, slotId (safe DOM id suffix) }
 let cart = [];
 let soldHistory = {}; // { "Halloween-0": { name: "Halloween Option 1", sold: 0 } }
 
@@ -15,6 +15,20 @@ const cartPanel = document.getElementById('cartPanel');
 const cartItemsDiv = document.getElementById('cartItems');
 const closeCartBtn = document.getElementById('closeCart');
 const footerBar = document.getElementById('footerBar');
+const cardSearchInput = document.getElementById('cardSearchInput');
+const clearSearchBtn = document.getElementById('clearSearchBtn');
+const searchStatus = document.getElementById('searchStatus');
+const categoryChips = document.getElementById('categoryChips');
+const sectionRegistry = [];
+let activeCategory = 'all';
+
+/** How many sellable rows exist in a section (skips bad entries). */
+function countValidCards(section) {
+  if (!section.cards || !Array.isArray(section.cards)) return 0;
+  return section.cards.filter(
+    (c) => c && typeof c.name === 'string' && typeof c.image === 'string' && typeof c.remaining === 'number'
+  ).length;
+}
 
 function initCards() {
   if (typeof sections === 'undefined' || !Array.isArray(sections)) {
@@ -22,50 +36,87 @@ function initCards() {
     return;
   }
 
-  sections.forEach((section) => {
-    const sectionDiv = document.createElement('div');
-    sectionDiv.className = 'card-section';
-
-    const title = document.createElement('div');
-    title.className = 'section-title';
-    title.textContent = section.label;
-    sectionDiv.appendChild(title);
+  sections.forEach((section, sectionIndex) => {
+    const sectionDiv = document.createElement('section');
+    sectionDiv.className = 'card-section category-section';
+    const validCount = countValidCards(section);
+    const heading = document.createElement('div');
+    heading.className = 'category-heading';
+    heading.innerHTML = `
+      <h2 class="section-title">${escapeHtml(section.label)}</h2>
+      <span class="section-count">${validCount} card${validCount !== 1 ? 's' : ''}</span>
+    `;
 
     const cardsContainer = document.createElement('div');
     cardsContainer.className = 'cards-container';
+    const cardNodes = [];
 
-    section.cards.forEach((card, cardIndex) => {
+    (section.cards || []).forEach((card, cardIndex) => {
       if (!card || typeof card.name !== 'string' || typeof card.image !== 'string' || typeof card.remaining !== 'number') {
         return;
       }
 
       const cardKey = `${section.label}-${cardIndex}`;
+      const slotId = `s${sectionIndex}-c${cardIndex}`;
       remaining[cardKey] = card.remaining;
 
       const cardDiv = document.createElement('div');
       cardDiv.className = 'card';
+      const hiddenTerms = Array.isArray(card.tags) ? card.tags.join(' ') : '';
+      cardDiv.dataset.searchText = normalizeText(`${section.label} ${card.name} ${hiddenTerms}`);
 
       cardDiv.innerHTML = `
-        <img src="${card.image}" alt="${card.name}" />
-        <div class="card-name">${card.name}</div>
-        <div class="card-qty">Remaining: <span id="qty-${cardKey}">${remaining[cardKey]}</span></div>
-        <button type="button" id="btn-${cardKey}">Claim</button>
-        <div class="sold-history" id="history-${cardKey}" style="display:none;"></div>
+        <img src="${escapeAttr(card.image)}" alt="${escapeHtml(card.name)}" />
+        <div class="card-name">${escapeHtml(card.name)}</div>
+        <div class="card-qty">Remaining: <span id="qty-${slotId}">${remaining[cardKey]}</span></div>
+        <button type="button" id="btn-${slotId}">Claim</button>
+        <div class="sold-history" id="history-${slotId}" style="display:none;"></div>
       `;
 
       const btn = cardDiv.querySelector('button');
-      btn.onclick = () => addToCart(card.name, cardKey, card.image, btn);
+      btn.onclick = () => addToCart(card.name, cardKey, card.image, btn, slotId);
 
       if (remaining[cardKey] === 0) {
         btn.disabled = true;
       }
 
       cardsContainer.appendChild(cardDiv);
+      cardNodes.push(cardDiv);
     });
 
-    sectionDiv.appendChild(cardsContainer);
+    if (cardsContainer.children.length === 0) {
+      const empty = document.createElement('p');
+      empty.className = 'accordion-empty';
+      empty.textContent = 'No cards in this category yet — add rows in data.js (name, image, remaining).';
+      sectionDiv.appendChild(heading);
+      sectionDiv.appendChild(empty);
+    } else {
+      sectionDiv.appendChild(heading);
+      sectionDiv.appendChild(cardsContainer);
+    }
+
+    sectionRegistry.push({ sectionEl: sectionDiv, cards: cardNodes, label: section.label, index: sectionIndex });
     cardSectionsContainer.appendChild(sectionDiv);
   });
+
+  renderCategoryChips();
+}
+
+function normalizeText(text) {
+  return String(text).toLowerCase().replace(/\s+/g, ' ').trim();
+}
+
+function escapeHtml(text) {
+  const s = String(text);
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function escapeAttr(text) {
+  return String(text).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
 }
 
 function calculatePrice(count) {
@@ -79,7 +130,7 @@ function calculatePrice(count) {
   return 9 + (count - 6);
 }
 
-function addToCart(cardName, key, image, button) {
+function addToCart(cardName, key, image, button, slotId) {
   if (remaining[key] <= 0) {
     alert('🐾 No cards left. Sorry! 🙃 🐾');
     return;
@@ -90,10 +141,11 @@ function addToCart(cardName, key, image, button) {
   soldHistory[key].sold++;
 
   remaining[key]--;
-  document.getElementById(`qty-${key}`).innerText = remaining[key];
+  const qtyEl = document.getElementById(`qty-${slotId}`);
+  if (qtyEl) qtyEl.innerText = remaining[key];
   if (remaining[key] === 0) button.disabled = true;
 
-  cart.push({ cardName, key, image });
+  cart.push({ cardName, key, image, slotId });
   updateCartDisplay();
 
   saveRemainingToLocalStorage();
@@ -105,9 +157,10 @@ function removeFromCart(index, permanentDelete = false) {
   if (!permanentDelete) {
     if (remaining[item.key] !== undefined) {
       remaining[item.key]++;
-      const qtySpan = document.getElementById(`qty-${item.key}`);
+      const sid = item.slotId;
+      const qtySpan = sid ? document.getElementById(`qty-${sid}`) : null;
       if (qtySpan) qtySpan.innerText = remaining[item.key];
-      const claimBtn = document.getElementById(`btn-${item.key}`);
+      const claimBtn = sid ? document.getElementById(`btn-${sid}`) : null;
       if (claimBtn && remaining[item.key] > 0) claimBtn.disabled = false;
     }
 
@@ -163,7 +216,7 @@ function updateCartDisplay() {
       if (!confirm('Finalize this sale? The card will leave the cart and will NOT go back into stock.')) return;
       const realIndex = cart.findIndex(c => c === item);
       if (realIndex === -1) return;
-      const historyDiv = document.getElementById(`history-${item.key}`);
+      const historyDiv = item.slotId ? document.getElementById(`history-${item.slotId}`) : null;
       if (historyDiv && soldHistory[item.key]) {
         historyDiv.style.display = 'block';
         historyDiv.textContent = `Sold: ${soldHistory[item.key].sold}`;
@@ -200,6 +253,79 @@ function setup() {
     cartPanel.style.display = 'none';
     footerBar.style.display = 'block';
   });
+
+  if (cardSearchInput) {
+    cardSearchInput.addEventListener('input', applyFilters);
+  }
+  if (clearSearchBtn) {
+    clearSearchBtn.addEventListener('click', () => {
+      cardSearchInput.value = '';
+      applyFilters();
+      cardSearchInput.focus();
+    });
+  }
+}
+
+function renderCategoryChips() {
+  if (!categoryChips) return;
+  categoryChips.innerHTML = '';
+
+  const allBtn = document.createElement('button');
+  allBtn.type = 'button';
+  allBtn.className = `category-chip ${activeCategory === 'all' ? 'is-active' : ''}`;
+  allBtn.textContent = 'All';
+  allBtn.onclick = () => setActiveCategory('all');
+  categoryChips.appendChild(allBtn);
+
+  sectionRegistry.forEach((sectionInfo) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = `category-chip ${activeCategory === sectionInfo.label ? 'is-active' : ''}`;
+    btn.textContent = sectionInfo.label;
+    btn.onclick = () => setActiveCategory(sectionInfo.label);
+    categoryChips.appendChild(btn);
+  });
+}
+
+function setActiveCategory(nextCategory) {
+  activeCategory = nextCategory;
+  renderCategoryChips();
+  applyFilters();
+}
+
+function applyFilters() {
+  const query = normalizeText(cardSearchInput ? cardSearchInput.value : '');
+  let visibleCardCount = 0;
+  let visibleSectionCount = 0;
+
+  sectionRegistry.forEach((sectionInfo) => {
+    let sectionMatches = 0;
+    sectionInfo.cards.forEach((cardEl) => {
+      const hit = !query || cardEl.dataset.searchText.includes(query);
+      cardEl.classList.toggle('card-hidden', !hit);
+      if (hit) sectionMatches++;
+    });
+
+    const categoryHit = activeCategory === 'all' || activeCategory === sectionInfo.label;
+    const shouldHideSection = !categoryHit || (query && sectionMatches === 0);
+    sectionInfo.sectionEl.classList.toggle('section-hidden', shouldHideSection);
+
+    if (!shouldHideSection) {
+      visibleSectionCount++;
+      visibleCardCount += sectionMatches;
+    }
+  });
+
+  if (searchStatus) {
+    const categoryLabel = activeCategory === 'all' ? 'all categories' : activeCategory;
+    if (!query) {
+      searchStatus.textContent = '';
+    } else if (visibleCardCount === 0) {
+      searchStatus.textContent = `No matches for "${query}" in ${categoryLabel}.`;
+    } else {
+      searchStatus.textContent = `${visibleCardCount} matching card${visibleCardCount !== 1 ? 's' : ''} in ${visibleSectionCount} categor${visibleSectionCount !== 1 ? 'ies' : 'y'}.`;
+    }
+  }
 }
 
 function saveRemainingToLocalStorage() {
@@ -228,4 +354,5 @@ function exportSoldHistoryToCSV() {
 
 initCards();
 setup();
+applyFilters();
 updateCartDisplay();
