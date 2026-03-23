@@ -15,12 +15,20 @@ const cartPanel = document.getElementById('cartPanel');
 const cartItemsDiv = document.getElementById('cartItems');
 const closeCartBtn = document.getElementById('closeCart');
 const footerBar = document.getElementById('footerBar');
-const cardSearchInput = document.getElementById('cardSearchInput');
-const clearSearchBtn = document.getElementById('clearSearchBtn');
-const searchStatus = document.getElementById('searchStatus');
+const quickPicks = document.getElementById('quickPicks');
 const categoryChips = document.getElementById('categoryChips');
 const sectionRegistry = [];
 let activeCategory = 'all';
+let activeQuickPick = 'all';
+
+const QUICK_PICK_GROUPS = [
+  { key: 'all', label: 'Show All', match: (item) => true },
+  { key: 'cat', label: 'Cats 🐱', match: (item) => item.tags && item.tags.includes('cat') },
+  { key: 'dog', label: 'Dogs 🐶', match: (item) => item.tags && item.tags.includes('dog') },
+  { key: 'animal', label: 'Animals', match: (item) => item.tags && (item.tags.includes('animal') || item.tags.includes('animals')) },
+  { key: 'bw', label: 'Black & White', match: (item) => item.tags && (item.tags.includes('bw') || item.tags.includes('black & white'))  },
+  { key: 'people', label: 'People', match: (item) => item.tags && item.tags.includes('people') }
+];
 
 /** How many sellable rows exist in a section (skips bad entries). */
 function countValidCards(section) {
@@ -62,9 +70,6 @@ function initCards() {
 
       const cardDiv = document.createElement('div');
       cardDiv.className = 'card';
-      const hiddenTerms = Array.isArray(card.tags) ? card.tags.join(' ') : '';
-      cardDiv.dataset.searchText = normalizeText(`${section.label} ${card.name} ${hiddenTerms}`);
-
       cardDiv.innerHTML = `
         <img src="${escapeAttr(card.image)}" alt="${escapeHtml(card.name)}" />
         <div class="card-name">${escapeHtml(card.name)}</div>
@@ -100,6 +105,7 @@ function initCards() {
   });
 
   renderCategoryChips();
+  renderQuickPicks();
 }
 
 function normalizeText(text) {
@@ -253,17 +259,6 @@ function setup() {
     cartPanel.style.display = 'none';
     footerBar.style.display = 'block';
   });
-
-  if (cardSearchInput) {
-    cardSearchInput.addEventListener('input', applyFilters);
-  }
-  if (clearSearchBtn) {
-    clearSearchBtn.addEventListener('click', () => {
-      cardSearchInput.value = '';
-      applyFilters();
-      cardSearchInput.focus();
-    });
-  }
 }
 
 function renderCategoryChips() {
@@ -287,47 +282,65 @@ function renderCategoryChips() {
   });
 }
 
+function renderQuickPicks() {
+  if (!quickPicks) return;
+  quickPicks.innerHTML = '';
+
+  QUICK_PICK_GROUPS.forEach((group) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = `quick-pick-btn ${activeQuickPick === group.key ? 'is-active' : ''}`;
+    btn.textContent = group.label;
+    btn.onclick = () => setActiveQuickPick(group.key);
+    quickPicks.appendChild(btn);
+  });
+}
+
 function setActiveCategory(nextCategory) {
   activeCategory = nextCategory;
+  activeQuickPick = 'all';
+  renderQuickPicks();
+  renderCategoryChips();
+  applyFilters();
+}
+
+function setActiveQuickPick(nextKey) {
+  activeQuickPick = nextKey;
+  activeCategory = 'all';
+  renderQuickPicks();
   renderCategoryChips();
   applyFilters();
 }
 
 function applyFilters() {
-  const query = normalizeText(cardSearchInput ? cardSearchInput.value : '');
-  let visibleCardCount = 0;
-  let visibleSectionCount = 0;
+  const activeGroup = QUICK_PICK_GROUPS.find((g) => g.key === activeQuickPick) || QUICK_PICK_GROUPS[0];
 
   sectionRegistry.forEach((sectionInfo) => {
-    let sectionMatches = 0;
-    sectionInfo.cards.forEach((cardEl) => {
-      const hit = !query || cardEl.dataset.searchText.includes(query);
-      cardEl.classList.toggle('card-hidden', !hit);
-      if (hit) sectionMatches++;
+    let sectionHasVisibleCards = false;
+
+    // 1. Look at each card in this section
+    sectionInfo.cards.forEach((cardDiv, cardIndex) => {
+      // Get the actual card data from your global 'sections' array
+      const cardData = sections[sectionInfo.index].cards[cardIndex];
+      
+      // Check if Category matches AND if the Quick Pick tag matches
+      const categoryMatch = (activeCategory === 'all' || activeCategory === sectionInfo.label);
+      
+      // IMPORTANT: We pass the whole cardData to the match function now
+      const tagMatch = activeGroup.match(cardData);
+
+      if (categoryMatch && tagMatch) {
+        cardDiv.style.display = 'block'; // Show card
+        sectionHasVisibleCards = true;
+      } else {
+        cardDiv.style.display = 'none'; // Hide card
+      }
     });
 
-    const categoryHit = activeCategory === 'all' || activeCategory === sectionInfo.label;
-    const shouldHideSection = !categoryHit || (query && sectionMatches === 0);
-    sectionInfo.sectionEl.classList.toggle('section-hidden', shouldHideSection);
-
-    if (!shouldHideSection) {
-      visibleSectionCount++;
-      visibleCardCount += sectionMatches;
-    }
+    // 2. Hide the whole section heading if no cards inside it match
+    sectionInfo.sectionEl.style.display = sectionHasVisibleCards ? 'block' : 'none';
   });
-
-  if (searchStatus) {
-    const categoryLabel = activeCategory === 'all' ? 'all categories' : activeCategory;
-    if (!query) {
-      searchStatus.textContent = '';
-    } else if (visibleCardCount === 0) {
-      searchStatus.textContent = `No matches for "${query}" in ${categoryLabel}.`;
-    } else {
-      searchStatus.textContent = `${visibleCardCount} matching card${visibleCardCount !== 1 ? 's' : ''} in ${visibleSectionCount} categor${visibleSectionCount !== 1 ? 'ies' : 'y'}.`;
-    }
-  }
 }
-
 function saveRemainingToLocalStorage() {
   localStorage.setItem('remaining', JSON.stringify(remaining));
 }
