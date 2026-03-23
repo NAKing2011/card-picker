@@ -67,5 +67,13 @@ const sections = [
       { name: 'Blank Option 2', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/products/1731/images/3712/cd1920-smiley-face-cloud-blank-card__26904.1656196013.386.513.jpg?c=1', remaining: 2 },
       { name: 'Blank Option 3', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/images/stencil/1280x1280/products/12354/25824/cd20086__55038.1667070888.jpg?c=1', remaining: 3 }
     ]
+  },
+  {
+    label: 'Grad Cards',
+    cards: [
+      { name: 'Grad Option 1', image: 'https ://cdn11.bigcommerce.com/s-o3ewkiqyx3/products/1606/images/3443/cd17610-line-up-of-five-kittens-on-pink-cute-cat-blank-note-card__42862.1656195816.386.513.jpg?c=1', remaining: 1 },
+      { name: 'Grad Option 2', image: 'https ://cdn11.bigcommerce.com/s-o3ewkiqyx3/products/1731/images/3712/cd1920-smiley-face-cloud-blank-card__26904.1656196013.386.513.jpg?c=1', remaining: 2 },
+      { name: 'Grad Option 3', image: 'https ://cdn11.bigcommerce.com/s-o3ewkiqyx3/images/stencil/1280x1280/products/12354/25824/cd20086__55038.1667070888.jpg?c=1', remaining: 3 }
+    ]
   }
 ];
