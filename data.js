@@ -2,13 +2,13 @@ const sections = [
   {
     label: 'Halloween',
     cards: [
-      { tags: [], name: 'Halloween Option 1', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/images/stencil/640w/products/1381/2944/cd12216-puppy-with-pumpkin-bucket-cute-dog-halloween-card__47774.1656195139.jpg?c=1', remaining: 5 },
-      { tags: [], name: 'Halloween Option 2', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/images/stencil/640w/products/1781/3812/cd2826-cat-under-candy-bucket-halloween-card__88678.1656196086.jpg?c=1', remaining: 2 },
-      { tags: [], name: 'Halloween Option 3', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/images/stencil/640w/products/1728/3706/cd18998-kitten-wearing-knit-pumpkin-hat-cute-halloween-card__85646.1656196009.jpg?c=1', remaining: 2 },
+      { tags: ['cat','dog'], name: 'Halloween Option 1', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/images/stencil/640w/products/1381/2944/cd12216-puppy-with-pumpkin-bucket-cute-dog-halloween-card__47774.1656195139.jpg?c=1', remaining: 5 },
+      { tags: ['cat'], name: 'Halloween Option 2', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/images/stencil/640w/products/1781/3812/cd2826-cat-under-candy-bucket-halloween-card__88678.1656196086.jpg?c=1', remaining: 2 },
+      { tags: ['animals','cat','people'], name: 'Halloween Option 3', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/images/stencil/640w/products/1728/3706/cd18998-kitten-wearing-knit-pumpkin-hat-cute-halloween-card__85646.1656196009.jpg?c=1', remaining: 2 },
       { tags: [], name: 'Halloween Option 4', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/images/stencil/640w/products/1915/4089/cd6786-kittens-in-jack-o-lantern-halloween-card__47551.1656196363.jpg?c=1', remaining: 9 },
       { tags: [], name: 'Halloween Option 5', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/images/stencil/640w/products/12266/25624/cd20366__85229.1665065873.jpg?c=1', remaining: 1 },
-      { tags: [], name: 'Halloween Option 6', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/images/stencil/640w/products/1442/3088/cd1254-little-witch-choosing-a-broom-halloween-card__25518.1656195238.jpg?c=1', remaining: 5 },
-      { tags: [], name: 'Halloween Option 7', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/images/stencil/640w/products/1729/3708/cd18999-black-cat-riding-broom-funny-halloween-card__98357.1656196011.jpg?c=1', remaining: 8 },
+      { tags: ['cat'], name: 'Halloween Option 6', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/images/stencil/640w/products/1442/3088/cd1254-little-witch-choosing-a-broom-halloween-card__25518.1656195238.jpg?c=1', remaining: 5 },
+      { tags: ['bw'], name: 'Halloween Option 7', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/images/stencil/640w/products/1729/3708/cd18999-black-cat-riding-broom-funny-halloween-card__98357.1656196011.jpg?c=1', remaining: 8 },
       { tags: [], name: 'Halloween Option 8', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/images/stencil/640w/products/1382/2946/cd12218-squirrel-trick-or-treating-funny-halloween-card__39465.1656195140.jpg?c=1', remaining: 4 },
       { tags: [], name: 'Halloween Option 9', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/images/stencil/640w/products/1470/3144/cd13663-trick-or-treat-dogs-funny-humorous-halloween-card__03953.1656195279.jpg?c=1', remaining: 6 },
       { tags: [], name: 'Halloween Option 10', image: 'https://m.media-amazon.com/images/I/61IcdZaXm4L._UF894,1000_QL80_.jpg', remaining: 1 }
@@ -17,7 +17,7 @@ const sections = [
   {
     label: 'Happy Birthday',
     cards: [
-      { tags: [], name: 'Birthday Option 1', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/products/12378/images/25874/cd20140__37605.1667070935.386.513.jpg?c=1', remaining: 5 },
+      { tags: ['people'], name: 'Birthday Option 1', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/products/12378/images/25874/cd20140__37605.1667070935.386.513.jpg?c=1', remaining: 5 },
       { tags: [], name: 'Birthday Option 2', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/products/1427/images/3049/cd12499-birthday-hugs-cat-funny-birthday-card__18543.1656195213.386.513.jpg?c=1', remaining: 0 },
       { tags: [], name: 'Birthday Option 3', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/products/1703/images/3638/cd18973-blue-pelican-with-beer-bottles-in-mouth-a-press-funny-birthday-card__42537.1656195962.386.513.jpg?c=1', remaining: 0 },
       { tags: [], name: 'Birthday Option 4', image: 'https://cdn11.bigcommerce.com/s-o3ewkiqyx3/products/13553/images/28276/cd21341__64825.1677534191.386.513.jpg?c=1', remaining: 2 },
