@@ -94,56 +94,36 @@ header h1 {
   text-align: center;
 }
 
-.search-wrap {
+/* Quick picks (large, action-first buttons) */
+.quick-picks-wrap {
   max-width: 1400px;
   margin: 0 auto;
   padding: 14px 16px 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 @media (min-width: 768px) {
-  .search-wrap {
+  .quick-picks-wrap {
     padding: 18px 24px 10px;
+    gap: 12px;
   }
 }
-.search-row {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-.search-input {
-  width: 100%;
-  min-height: 46px;
-  border: 1px solid #d8d8de;
-  border-radius: 12px;
-  padding: 0 14px;
-  font-size: 16px;
-  background: #fff;
-  color: #222;
-  outline: none;
-}
-.search-input:focus {
-  border-color: #007aff;
-  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
-}
-.search-clear-btn {
-  min-height: 46px;
-  min-width: 74px;
+.quick-pick-btn {
   border: none;
-  border-radius: 12px;
-  background: #2c2c2e;
-  color: #fff;
+  background: #ffffff;
+  color: #1f1f25;
+  border-radius: 14px;
+  padding: 12px 16px;
+  min-height: 46px;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  padding: 0 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
-.search-clear-btn:active {
-  opacity: 0.9;
-}
-.search-status {
-  min-height: 20px;
-  margin: 8px 2px 0;
-  color: #5c5c63;
-  font-size: 14px;
+.quick-pick-btn.is-active {
+  background: #007aff;
+  color: #fff;
 }
 
 /* Category chips */
@@ -152,9 +132,8 @@ header h1 {
   margin: 0 auto;
   padding: 4px 16px 10px;
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
   position: sticky;
   top: calc(75px + env(safe-area-inset-top, 0px));
   z-index: 90;
@@ -172,8 +151,8 @@ header h1 {
   background: #fff;
   color: #3a3a40;
   border-radius: 999px;
-  padding: 10px 14px;
-  font-size: 14px;
+  padding: 8px 12px;
+  font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
@@ -461,7 +440,7 @@ header h1 {
   background: #e5e5ea;
 }
 .btn-cart-finalize {
-  background: #34c759;
+  background: white;
   color: white;
 }
 .btn-cart-finalize:active {
@@ -524,3 +503,17 @@ header h1 {
 .btn-export:active {
   opacity: 0.9;
 }
+
+index.html {
+  scroll-behavior: smooth;
+}
+
+.card-section {
+  transition: opacity 0.3s ease;
+}
+
+.section-hidden {
+  display: none;
+  opacity: 0;
+}
+
