@@ -27,7 +27,8 @@ const QUICK_PICK_GROUPS = [
   { key: 'dog', label: 'Dogs 🐶', match: (item) => item.tags && item.tags.includes('dog') },
   { key: 'animal', label: 'Animals', match: (item) => item.tags && (item.tags.includes('animal') || item.tags.includes('animals')) },
   { key: 'bw', label: 'Black & White', match: (item) => item.tags && (item.tags.includes('bw') || item.tags.includes('black & white'))  },
-  { key: 'people', label: 'People', match: (item) => item.tags && item.tags.includes('people') }
+  { key: 'people', label: 'People', match: (item) => item.tags && item.tags.includes('people') },
+  { key: 'funny', label: 'Funny', match: (item) => item.tags && item.tags.includes('funny') }
 ];
 
 /** How many sellable rows exist in a section (skips bad entries). */
@@ -43,7 +44,7 @@ function initCards() {
     console.error('data.js must load before app.js and define `sections`.');
     return;
   }
-
+  
   sections.forEach((section, sectionIndex) => {
     const sectionDiv = document.createElement('section');
     sectionDiv.className = 'card-section category-section';
@@ -70,23 +71,35 @@ function initCards() {
 
       const cardDiv = document.createElement('div');
       cardDiv.className = 'card';
+      
+      // Keep your live visual classes
+      if (remaining[cardKey] === 0) cardDiv.classList.add('sold-out');
+      if (remaining[cardKey] === 1) cardDiv.classList.add('low-stock');
+
+      // --- NEW: Check for the hot tag ---
+      const isHot = card.tags && card.tags.includes('hot');
+      const hotBadge = isHot ? '<div class="hot-badge">🔥 Hot Seller</div>' : '';
+
       cardDiv.innerHTML = `
-        <img src="${escapeAttr(card.image)}" alt="${escapeHtml(card.name)}" />
+        <div class="card-img-container">
+          ${hotBadge} 
+          <img src="${escapeAttr(card.image)}" alt="${escapeHtml(card.name)}" />
+          <div class="sold-out-overlay">SOLD OUT</div>
+        </div>
         <div class="card-name">${escapeHtml(card.name)}</div>
         <div class="card-qty">Remaining: <span id="qty-${slotId}">${remaining[cardKey]}</span></div>
-        <button type="button" id="btn-${slotId}">Claim</button>
+        <button type="button" id="btn-${slotId}" ${remaining[cardKey] === 0 ? 'disabled' : ''}>Claim</button>
         <div class="sold-history" id="history-${slotId}" style="display:none;"></div>
       `;
 
       const btn = cardDiv.querySelector('button');
       btn.onclick = () => addToCart(card.name, cardKey, card.image, btn, slotId);
 
-      if (remaining[cardKey] === 0) {
-        btn.disabled = true;
-      }
-
       cardsContainer.appendChild(cardDiv);
       cardNodes.push(cardDiv);
+    
+      
+
     });
 
     if (cardsContainer.children.length === 0) {
@@ -127,13 +140,13 @@ function escapeAttr(text) {
 
 function calculatePrice(count) {
   if (count <= 0) return 0;
-  if (count === 1) return 2;
-  if (count === 2) return 3;
-  if (count === 3) return 5;
-  if (count === 4) return 6;
-  if (count === 5) return 8;
-  if (count === 6) return 9;
-  return 9 + (count - 6);
+  if (count === 1) return 3;
+  if (count === 2) return 5;
+  if (count === 3) return 8;
+  if (count === 4) return 10;
+  if (count === 5) return 13;
+  if (count === 6) return 15;
+  return 15 + (count - 6);
 }
 
 function addToCart(cardName, key, image, button, slotId) {
@@ -153,6 +166,9 @@ function addToCart(cardName, key, image, button, slotId) {
 
   cart.push({ cardName, key, image, slotId });
   updateCartDisplay();
+  
+  // ADD THIS LINE:
+  updateCardVisuals(slotId, key);
 
   saveRemainingToLocalStorage();
 }
@@ -168,6 +184,7 @@ function removeFromCart(index, permanentDelete = false) {
       if (qtySpan) qtySpan.innerText = remaining[item.key];
       const claimBtn = sid ? document.getElementById(`btn-${sid}`) : null;
       if (claimBtn && remaining[item.key] > 0) claimBtn.disabled = false;
+      updateCardVisuals(item.slotId, item.key);
     }
 
     if (soldHistory[item.key]) {
@@ -363,6 +380,21 @@ function exportSoldHistoryToCSV() {
 
   link.click();
   document.body.removeChild(link);
+}
+
+function updateCardVisuals(slotId, key) {
+  const cardDiv = document.getElementById(`btn-${slotId}`).closest('.card');
+  const count = remaining[key];
+
+  // Remove old classes first
+  cardDiv.classList.remove('sold-out', 'low-stock');
+
+  // Add the correct class based on the NEW count
+  if (count === 0) {
+    cardDiv.classList.add('sold-out');
+  } else if (count === 1) {
+    cardDiv.classList.add('low-stock');
+  }
 }
 
 initCards();
