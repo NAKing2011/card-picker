@@ -588,3 +588,66 @@ index.html {
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
   pointer-events: none; /* Makes sure it doesn't block clicking the card */
 }
+
+/* The Special Card Container */
+/* Keep this! It styles the special cards in the main grid */
+.card.special-card {
+  border: 2px solid #ffd700 !important; /* Gold border */
+  background: linear-gradient(145deg, #fffcf0, #ffffff);
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+  /* Removed 'scale' to prevent layout jumping */
+  position: relative; 
+}
+
+/* The Premium Badge */
+.special-badge {
+  background: #ffd700;
+  color: #000;
+  font-size: 0.7rem;
+  font-weight: bold;
+  padding: 4px 8px;
+  position: absolute;
+  top: 8px;
+  left: 8px; /* Moved to left so it doesn't hit your 'X' or 'Hot' badge */
+  border-radius: 4px;
+  z-index: 5;
+  text-transform: uppercase;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Change the button color for special cards */
+.special-card button {
+  background-color: #ffd700 !important;
+  color: #1c1c1e !important;
+  font-weight: bold;
+}
+
+/* This resets special styling for the tiny images in the cart panel */
+#cartItems .card.special-card {
+  transform: none;
+  box-shadow: none;
+  border: none;
+  background: transparent;
+  padding: 5px;
+}
+
+/* Normal buttons turn grey when disabled */
+button:disabled {
+  background-color: #ccc !important;
+  color: #666 !important;
+  cursor: not-allowed;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* Ensure Special (Gold) buttons also turn grey when disabled */
+.special-card button:disabled {
+  background-color: #ccc !important; 
+  color: #666 !important;
+}
+
+/* Optional: Add a "clicked" effect for the Gold button before it disables */
+.special-card button:active {
+  background-color: #e6c200 !important; /* Slightly darker gold */
+  transform: translateY(2px);
+}
