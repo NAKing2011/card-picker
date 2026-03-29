@@ -25,9 +25,9 @@ const QUICK_PICK_GROUPS = [
   { key: 'all', label: 'Show All', match: (item) => true },
   { key: 'cat', label: 'Cats 🐱', match: (item) => item.tags && item.tags.includes('cat') },
   { key: 'dog', label: 'Dogs 🐶', match: (item) => item.tags && item.tags.includes('dog') },
-  { key: 'animal', label: 'Animals', match: (item) => item.tags && (item.tags.includes('animal') || item.tags.includes('animals')) },
+  /*{ key: 'animal', label: 'Animals', match: (item) => item.tags && (item.tags.includes('animal') || item.tags.includes('animals')) },
   { key: 'bw', label: 'Black & White', match: (item) => item.tags && (item.tags.includes('bw') || item.tags.includes('black & white'))  },
-  { key: 'people', label: 'People', match: (item) => item.tags && item.tags.includes('people') },
+  { key: 'people', label: 'People', match: (item) => item.tags && item.tags.includes('people') }, */
   { key: 'funny', label: 'Funny', match: (item) => item.tags && item.tags.includes('funny') }
 ];
 
@@ -72,6 +72,14 @@ function initCards() {
       const cardDiv = document.createElement('div');
       cardDiv.className = 'card';
       
+      // NEW: Add special class if the data says so
+      if (card.isSpecial) {
+        cardDiv.classList.add('special-card');
+        // Optional: add a badge or price tag text
+        const priceTag = '<div class="special-badge">✨ Premium</div>';
+        cardDiv.insertAdjacentHTML('afterbegin', priceTag);
+      }
+      
       // Keep your live visual classes
       if (remaining[cardKey] === 0) cardDiv.classList.add('sold-out');
       if (remaining[cardKey] === 1) cardDiv.classList.add('low-stock');
@@ -97,9 +105,10 @@ function initCards() {
 
       cardsContainer.appendChild(cardDiv);
       cardNodes.push(cardDiv);
-    
-      
 
+      const isSpecial = card.isSpecial || false; 
+      btn.onclick = () => addToCart(card.name, cardKey, card.image, btn, slotId, isSpecial);
+      
     });
 
     if (cardsContainer.children.length === 0) {
@@ -138,7 +147,8 @@ function escapeAttr(text) {
   return String(text).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
 }
 
-function calculatePrice(count) {
+// 1. Your existing tiered logic for regular cards
+function calculateRegularTier(count) {
   if (count <= 0) return 0;
   if (count === 1) return 3;
   if (count === 2) return 5;
@@ -149,29 +159,65 @@ function calculatePrice(count) {
   return 15 + (count - 6);
 }
 
-function addToCart(cardName, key, image, button, slotId) {
+// 2. The main price function (it MUST take the 'cart' array)
+function calculatePrice(cartData) {
+  let total = 0;
+  let regularCount = 0;
+
+  // 1. If it's the array (the list of cards), check for special ones
+  if (Array.isArray(cartData)) {
+    cartData.forEach(item => {
+      if (item.isSpecial) {
+        total += 5; // Special cards = $5
+      } else {
+        regularCount++; // Normal cards = bulk discount
+      }
+    });
+  } 
+  // 2. If it's just a number (the old way), treat them all as regular
+  else {
+    regularCount = cartData;
+  }
+
+  // Add the tiered pricing for the regular cards
+  total += calculateRegularTier(regularCount); 
+  return total;
+}
+
+
+
+function addToCart(cardName, key, image, button, slotId, isSpecial) {
   if (remaining[key] <= 0) {
     alert('🐾 No cards left. Sorry! 🙃 🐾');
     return;
   }
+  
   if (!soldHistory[key]) {
     soldHistory[key] = { name: cardName, sold: 0 };
   }
   soldHistory[key].sold++;
-
   remaining[key]--;
-  const qtyEl = document.getElementById(`qty-${slotId}`);
-  if (qtyEl) qtyEl.innerText = remaining[key];
-  if (remaining[key] === 0) button.disabled = true;
-
-  cart.push({ cardName, key, image, slotId });
-  updateCartDisplay();
   
-  // ADD THIS LINE:
-  updateCardVisuals(slotId, key);
+  // Push the isSpecial status into the cart array
+  cart.push({ name: cardName, key: key, image: image, slotId: slotId, isSpecial: isSpecial });
 
-  saveRemainingToLocalStorage();
+  const qtyEl = document.getElementById(`qty-${slotId}`);
+  if (qtyEl) qtyEl.textContent = remaining[key];
+  if (remaining[key] <= 0) button.disabled = true;
+
+  // Use the smart price function
+  const total = calculatePrice(cart);
+  
+  // Update Footer and Cart Panel
+  if(footerBar) footerBar.textContent = `Total: $${total} | ${cart.length} card${cart.length !== 1 ? 's' : ''}`;
+  const cartTotalEl = document.getElementById('cartTotal');
+  if(cartTotalEl) cartTotalEl.textContent = `Total: $${total}`;
+  
+  cartIcon.setAttribute('data-count', cart.length);
+
+  updateCartDisplay();
 }
+
 
 function removeFromCart(index, permanentDelete = false) {
   const item = cart[index];
@@ -203,22 +249,29 @@ function updateCartDisplay() {
   cartItemsDiv.innerHTML = '';
 
   cart.forEach((item, index) => {
-    const div = document.createElement('div');
-    div.className = 'cart-item';
+    const itemDiv = document.createElement('div');
+    itemDiv.className = 'cart-item';
 
     const top = document.createElement('div');
     top.className = 'cart-item-top';
 
     const img = document.createElement('img');
     img.src = item.image;
-    img.alt = item.cardName;
+    img.alt = item.name;
 
     const body = document.createElement('div');
     body.className = 'cart-item-body';
 
     const nameSpan = document.createElement('span');
     nameSpan.className = 'cart-item-name';
-    nameSpan.textContent = item.cardName;
+    nameSpan.textContent = item.name;
+
+    // Add the type label (NEW)
+    const typeDiv = document.createElement('div');
+    typeDiv.className = 'sold-history';
+    typeDiv.style.display = 'block';
+    typeDiv.style.marginBottom = '10px';
+    typeDiv.textContent = item.isSpecial ? 'Premium Card — $5.00' : 'Regular Card';
 
     const actions = document.createElement('div');
     actions.className = 'cart-item-actions';
@@ -226,7 +279,7 @@ function updateCartDisplay() {
     const returnBtn = document.createElement('button');
     returnBtn.type = 'button';
     returnBtn.className = 'btn-cart-return';
-    returnBtn.textContent = 'Return';
+    returnBtn.textContent = 'Remove Card';
     returnBtn.title = 'Put this card back in stock';
     returnBtn.onclick = () => removeFromCart(index, false);
 
@@ -250,19 +303,21 @@ function updateCartDisplay() {
     actions.appendChild(returnBtn);
     actions.appendChild(finalizeBtn);
     body.appendChild(nameSpan);
+    body.appendChild(typeDiv);
     body.appendChild(actions);
     top.appendChild(img);
     top.appendChild(body);
-    div.appendChild(top);
+    itemDiv.appendChild(top);
 
-    cartItemsDiv.appendChild(div);
+    cartItemsDiv.appendChild(itemDiv);
   });
 
-  const totalPrice = calculatePrice(cart.length);
+  const totalPrice = calculatePrice(cart);
   cartIcon.setAttribute('data-count', cart.length);
   document.getElementById('cartTotal').innerText = `Total: $${totalPrice}`;
   footerBar.innerText = `Total: $${totalPrice} | ${cart.length} card${cart.length !== 1 ? 's' : ''}`;
 }
+
 
 function toggleCart() {
   const isVisible = cartPanel.style.display === 'flex';
@@ -395,6 +450,28 @@ function updateCardVisuals(slotId, key) {
   } else if (count === 1) {
     cardDiv.classList.add('low-stock');
   }
+}
+
+function setActiveCategory(nextCategory) {
+  activeCategory = nextCategory;
+  activeQuickPick = 'all';
+  renderQuickPicks();
+  renderCategoryChips();
+  applyFilters();
+  
+  // Auto-scroll to top when category changes
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function setActiveQuickPick(nextKey) {
+  activeQuickPick = nextKey;
+  activeCategory = 'all';
+  renderQuickPicks();
+  renderCategoryChips();
+  applyFilters();
+  
+  // Auto-scroll to top when quick pick changes
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 initCards();
